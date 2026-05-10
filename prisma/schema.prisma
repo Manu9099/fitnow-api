@@ -1,0 +1,331 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  client
+  trainer
+  admin
+}
+
+enum SessionStatus {
+  pending
+  confirmed
+  in_progress
+  completed
+  cancelled
+  no_show
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  completed
+  failed
+  refunded
+}
+
+enum PaymentMethod {
+  mercado_pago
+  stripe
+  yape
+  wallet
+}
+
+enum Modality {
+  gym
+  park
+  home
+  office
+  beach
+  online
+}
+
+enum FitnessGoal {
+  weight_loss
+  muscle_gain
+  endurance
+  flexibility
+  rehabilitation
+  sports_performance
+  general_fitness
+}
+
+enum TrainerTier {
+  basic
+  premium
+}
+
+enum CertStatus {
+  pending
+  verified
+  rejected
+}
+
+enum DayOfWeek {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+  sunday
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String?   @map("password_hash")
+  fullName         String    @map("full_name")
+  phone            String?
+  avatarUrl        String?   @map("avatar_url")
+  role             UserRole  @default(client)
+  isActive         Boolean   @default(true) @map("is_active")
+  isEmailVerified  Boolean   @default(false) @map("is_email_verified")
+  refreshTokenHash String?   @map("refresh_token_hash")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  trainerProfile    TrainerProfile?
+  clientProfile     ClientProfile?
+  sessionsAsClient  Session[]        @relation("ClientSessions")
+  cancelledSessions Session[]        @relation("CancelledBy")
+  reviewsGiven      Review[]
+  notifications     Notification[]
+  fcmTokens         FcmToken[]
+  reportsGiven      Report[]         @relation("ReporterReports")
+  reportsReceived   Report[]         @relation("ReportedReports")
+  certReviews       Certification[]
+
+  @@map("users")
+}
+
+model TrainerProfile {
+  id               String      @id @default(uuid())
+  userId           String      @unique @map("user_id")
+  bio              String?
+  yearsExperience  Int?        @map("years_experience")
+  hourlyRate       Decimal     @map("hourly_rate") @db.Decimal(8, 2)
+  tier             TrainerTier @default(basic)
+  locationLat      Float?      @map("location_lat")
+  locationLng      Float?      @map("location_lng")
+  locationLabel    String?     @map("location_label")
+  serviceRadiusKm  Int         @default(10) @map("service_radius_km")
+  modalities       Modality[]
+  totalSessions    Int         @default(0) @map("total_sessions")
+  avgRating        Decimal?    @map("avg_rating") @db.Decimal(3, 2)
+  totalReviews     Int         @default(0) @map("total_reviews")
+  isAvailableNow   Boolean     @default(false) @map("is_available_now")
+  lastSeenAt       DateTime?   @map("last_seen_at")
+  premiumExpiresAt DateTime?   @map("premium_expires_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialties      TrainerSpecialty[]
+  certifications   Certification[]
+  availability     TrainerAvailability[]
+  sessions         Session[]
+  reviews          Review[]
+  payouts          TrainerPayout[]
+
+  @@map("trainer_profiles")
+}
+
+model TrainerSpecialty {
+  trainerId String      @map("trainer_id")
+  goal      FitnessGoal
+
+  trainer   TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@id([trainerId, goal])
+  @@map("trainer_specialties")
+}
+
+model Certification {
+  id           String     @id @default(uuid())
+  trainerId    String     @map("trainer_id")
+  name         String
+  issuedBy     String     @map("issued_by")
+  issuedAt     DateTime   @map("issued_at") @db.Date
+  expiresAt    DateTime?  @map("expires_at") @db.Date
+  documentUrl  String?    @map("document_url")
+  status       CertStatus @default(pending)
+  reviewedAt   DateTime?  @map("reviewed_at")
+  reviewedById String?    @map("reviewed_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  trainer      TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  reviewedBy   User?          @relation(fields: [reviewedById], references: [id])
+
+  @@map("certifications")
+}
+
+model TrainerAvailability {
+  id        String    @id @default(uuid())
+  trainerId String    @map("trainer_id")
+  day       DayOfWeek
+  startTime String    @map("start_time")
+  endTime   String    @map("end_time")
+
+  trainer   TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@unique([trainerId, day, startTime])
+  @@map("trainer_availability")
+}
+
+model ClientProfile {
+  id                  String      @id @default(uuid())
+  userId              String      @unique @map("user_id")
+  goals               FitnessGoal[]
+  fitnessLevel        String?     @map("fitness_level")
+  injuriesNotes       String?     @map("injuries_notes")
+  preferredModalities Modality[]  @map("preferred_modalities")
+  walletBalance       Decimal     @default(0) @map("wallet_balance") @db.Decimal(10, 2)
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("client_profiles")
+}
+
+model Session {
+  id                 String        @id @default(uuid())
+  clientId           String        @map("client_id")
+  trainerId          String        @map("trainer_id")
+  scheduledAt        DateTime      @map("scheduled_at")
+  durationMinutes    Int           @default(60) @map("duration_minutes")
+  modality           Modality
+  locationLat        Float?        @map("location_lat")
+  locationLng        Float?        @map("location_lng")
+  locationLabel      String?       @map("location_label")
+  status             SessionStatus @default(pending)
+  basePrice          Decimal       @map("base_price") @db.Decimal(8, 2)
+  platformFee        Decimal       @map("platform_fee") @db.Decimal(8, 2)
+  trainerPayout      Decimal       @map("trainer_payout") @db.Decimal(8, 2)
+  notes              String?
+  cancellationReason String?       @map("cancellation_reason")
+  cancelledById      String?       @map("cancelled_by")
+  cancelledAt        DateTime?     @map("cancelled_at")
+  isOnDemand         Boolean       @default(false) @map("is_on_demand")
+  requestExpiresAt   DateTime?     @map("request_expires_at")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  client             User           @relation("ClientSessions", fields: [clientId], references: [id])
+  trainer            TrainerProfile @relation(fields: [trainerId], references: [id])
+  cancelledBy        User?          @relation("CancelledBy", fields: [cancelledById], references: [id])
+  payment            Payment?
+  payout             TrainerPayout?
+  review             Review?
+  report             Report?
+
+  @@map("sessions")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  sessionId         String        @unique @map("session_id")
+  clientId          String        @map("client_id")
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("PEN")
+  method            PaymentMethod
+  status            PaymentStatus @default(pending)
+  externalPaymentId String?       @map("external_payment_id")
+  externalStatus    String?       @map("external_status")
+  paidAt            DateTime?     @map("paid_at")
+  refundedAt        DateTime?     @map("refunded_at")
+  refundAmount      Decimal?      @map("refund_amount") @db.Decimal(10, 2)
+  refundReason      String?       @map("refund_reason")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  session           Session @relation(fields: [sessionId], references: [id])
+
+  @@map("payments")
+}
+
+model TrainerPayout {
+  id            String        @id @default(uuid())
+  trainerId     String        @map("trainer_id")
+  sessionId     String        @unique @map("session_id")
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(pending)
+  transferredAt DateTime?     @map("transferred_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  trainer       TrainerProfile @relation(fields: [trainerId], references: [id])
+  session       Session        @relation(fields: [sessionId], references: [id])
+
+  @@map("trainer_payouts")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  sessionId String   @unique @map("session_id")
+  clientId  String   @map("client_id")
+  trainerId String   @map("trainer_id")
+  rating    Int
+  comment   String?
+  isPublic  Boolean  @default(true) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session   Session        @relation(fields: [sessionId], references: [id])
+  client    User           @relation(fields: [clientId], references: [id])
+  trainer   TrainerProfile @relation(fields: [trainerId], references: [id])
+
+  @@map("reviews")
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  title     String
+  body      String
+  type      String?
+  metadata  Json      @default("{}")
+  isRead    Boolean   @default(false) @map("is_read")
+  sentAt    DateTime? @map("sent_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model FcmToken {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  token      String   @unique
+  deviceType String?  @map("device_type")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("fcm_tokens")
+}
+
+model Report {
+  id             String    @id @default(uuid())
+  reporterId     String    @map("reporter_id")
+  reportedUserId String    @map("reported_user_id")
+  sessionId      String?   @map("session_id")
+  reason         String
+  description    String?
+  isResolved     Boolean   @default(false) @map("is_resolved")
+  resolvedById   String?   @map("resolved_by")
+  resolvedAt     DateTime? @map("resolved_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  reporter       User     @relation("ReporterReports", fields: [reporterId], references: [id])
+  reportedUser   User     @relation("ReportedReports", fields: [reportedUserId], references: [id])
+  session        Session? @relation(fields: [sessionId], references: [id])
+
+  @@map("reports")
+}

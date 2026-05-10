@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_USER: fitnow
+      POSTGRES_PASSWORD: fitnow123
+      POSTGRES_DB: fitnow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://fitnow:fitnow123@db:5432/fitnow_db
+      JWT_SECRET: dev_secret_change_in_prod
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_in_prod
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: development
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
