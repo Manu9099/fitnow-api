@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SessionsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -72,7 +71,7 @@ __decorate([
     __param(1, (0, current_user_decorator_1.CurrentUser)('role')),
     __param(2, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_a = typeof client_1.UserRole !== "undefined" && client_1.UserRole) === "function" ? _a : Object, session_dto_1.QuerySessionsDto]),
+    __metadata("design:paramtypes", [String, String, session_dto_1.QuerySessionsDto]),
     __metadata("design:returntype", void 0)
 ], SessionsController.prototype, "findMine", null);
 __decorate([
@@ -81,7 +80,7 @@ __decorate([
     __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __param(1, (0, current_user_decorator_1.CurrentUser)('role')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_b = typeof client_1.UserRole !== "undefined" && client_1.UserRole) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SessionsController.prototype, "upcoming", null);
 __decorate([
@@ -90,7 +89,7 @@ __decorate([
     __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __param(1, (0, current_user_decorator_1.CurrentUser)('role')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_c = typeof client_1.UserRole !== "undefined" && client_1.UserRole) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SessionsController.prototype, "history", null);
 __decorate([
@@ -100,7 +99,7 @@ __decorate([
     __param(1, (0, current_user_decorator_1.CurrentUser)('id')),
     __param(2, (0, current_user_decorator_1.CurrentUser)('role')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, typeof (_d = typeof client_1.UserRole !== "undefined" && client_1.UserRole) === "function" ? _d : Object]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], SessionsController.prototype, "findOne", null);
 __decorate([

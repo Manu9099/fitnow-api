@@ -8,7 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddSpecialtyDto = exports.CreateAvailabilityDto = exports.CreateCertificationDto = exports.QueryTrainersDto = exports.UpdateLocationDto = exports.UpdateTrainerProfileDto = exports.CreateTrainerProfileDto = void 0;
 const class_validator_1 = require("class-validator");
@@ -118,13 +117,13 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ enum: client_1.FitnessGoal }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(client_1.FitnessGoal),
-    __metadata("design:type", typeof (_a = typeof client_1.FitnessGoal !== "undefined" && client_1.FitnessGoal) === "function" ? _a : Object)
+    __metadata("design:type", String)
 ], QueryTrainersDto.prototype, "goal", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ enum: client_1.Modality }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(client_1.Modality),
-    __metadata("design:type", typeof (_b = typeof client_1.Modality !== "undefined" && client_1.Modality) === "function" ? _b : Object)
+    __metadata("design:type", String)
 ], QueryTrainersDto.prototype, "modality", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
@@ -201,7 +200,7 @@ exports.CreateAvailabilityDto = CreateAvailabilityDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ enum: client_1.DayOfWeek }),
     (0, class_validator_1.IsEnum)(client_1.DayOfWeek),
-    __metadata("design:type", typeof (_c = typeof client_1.DayOfWeek !== "undefined" && client_1.DayOfWeek) === "function" ? _c : Object)
+    __metadata("design:type", String)
 ], CreateAvailabilityDto.prototype, "day", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: '06:00' }),
@@ -220,6 +219,6 @@ exports.AddSpecialtyDto = AddSpecialtyDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ enum: client_1.FitnessGoal }),
     (0, class_validator_1.IsEnum)(client_1.FitnessGoal),
-    __metadata("design:type", typeof (_d = typeof client_1.FitnessGoal !== "undefined" && client_1.FitnessGoal) === "function" ? _d : Object)
+    __metadata("design:type", String)
 ], AddSpecialtyDto.prototype, "goal", void 0);
 //# sourceMappingURL=trainer.dto.js.map
