@@ -122,28 +122,38 @@ export class SessionsService {
     return this.updateStatus(sessionId, SessionStatus.completed);
   }
 
-  async cancel(sessionId: string, userId: string, dto: CancelSessionDto) {
-    const session = await this.prisma.session.findUnique({ where: { id: sessionId } });
-    if (!session) throw new NotFoundException();
+ async cancel(sessionId: string, userId: string, dto: CancelSessionDto) {
+  const session = await this.prisma.session.findUnique({
+    where: { id: sessionId },
+  });
 
-    const trainer = await this.prisma.trainerProfile.findUnique({ where: { id: session.trainerId } });
-    const isOwner = session.clientId === userId || trainer?.userId === userId;
-    if (!isOwner) throw new ForbiddenException();
+  if (!session) throw new NotFoundException();
 
-    if ([SessionStatus.completed, SessionStatus.cancelled].includes(session.status)) {
-      throw new BadRequestException('Esta sesión no puede cancelarse');
-    }
+  const trainer = await this.prisma.trainerProfile.findUnique({
+    where: { id: session.trainerId },
+  });
 
-    return this.prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        status:             SessionStatus.cancelled,
-        cancellationReason: dto.reason,
-        cancelledById:      userId,
-        cancelledAt:        new Date(),
-      },
-    });
+  const isOwner = session.clientId === userId || trainer?.userId === userId;
+
+  if (!isOwner) throw new ForbiddenException();
+
+  if (
+    session.status === SessionStatus.completed ||
+    session.status === SessionStatus.cancelled
+  ) {
+    throw new BadRequestException('Esta sesión no puede cancelarse');
   }
+
+  return this.prisma.session.update({
+    where: { id: sessionId },
+    data: {
+      status: SessionStatus.cancelled,
+      cancellationReason: dto.reason,
+      cancelledById: userId,
+      cancelledAt: new Date(),
+    },
+  });
+}
 
   async findUpcoming(userId: string, role: UserRole) {
     const where: any = role === UserRole.trainer

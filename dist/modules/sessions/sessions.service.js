@@ -116,14 +116,19 @@ let SessionsService = class SessionsService {
         return this.updateStatus(sessionId, client_1.SessionStatus.completed);
     }
     async cancel(sessionId, userId, dto) {
-        const session = await this.prisma.session.findUnique({ where: { id: sessionId } });
+        const session = await this.prisma.session.findUnique({
+            where: { id: sessionId },
+        });
         if (!session)
             throw new common_1.NotFoundException();
-        const trainer = await this.prisma.trainerProfile.findUnique({ where: { id: session.trainerId } });
+        const trainer = await this.prisma.trainerProfile.findUnique({
+            where: { id: session.trainerId },
+        });
         const isOwner = session.clientId === userId || trainer?.userId === userId;
         if (!isOwner)
             throw new common_1.ForbiddenException();
-        if ([client_1.SessionStatus.completed, client_1.SessionStatus.cancelled].includes(session.status)) {
+        if (session.status === client_1.SessionStatus.completed ||
+            session.status === client_1.SessionStatus.cancelled) {
             throw new common_1.BadRequestException('Esta sesión no puede cancelarse');
         }
         return this.prisma.session.update({

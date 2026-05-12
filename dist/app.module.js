@@ -20,6 +20,7 @@ const notifications_module_1 = require("./modules/notifications/notifications.mo
 const admin_module_1 = require("./modules/admin/admin.module");
 const client_profiles_module_1 = require("./modules/client-profiles/client-profiles.module");
 const payments_module_1 = require("./modules/payments/payments.module");
+const reports_module_1 = require("./modules/reports/reports.module");
 const jwt_auth_guard_1 = require("./common/guards/jwt-auth.guard");
 const roles_guard_1 = require("./common/guards/roles.guard");
 const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
@@ -40,6 +41,7 @@ exports.AppModule = AppModule = __decorate([
             admin_module_1.AdminModule,
             client_profiles_module_1.ClientProfilesModule,
             payments_module_1.PaymentsModule,
+            reports_module_1.ReportsModule,
         ],
         providers: [
             { provide: core_1.APP_GUARD, useClass: jwt_auth_guard_1.JwtAuthGuard },
