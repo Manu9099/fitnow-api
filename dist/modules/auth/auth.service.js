@@ -58,19 +58,38 @@ let AuthService = class AuthService {
         this.config = config;
     }
     async register(dto) {
-        const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        const exists = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+        });
         if (exists)
             throw new common_1.ConflictException('El email ya está registrado');
         const passwordHash = await bcrypt.hash(dto.password, 12);
-        const user = await this.prisma.user.create({
-            data: {
-                email: dto.email,
-                passwordHash,
-                fullName: dto.fullName,
-                phone: dto.phone,
-                role: dto.role,
-            },
-            select: { id: true, email: true, fullName: true, role: true },
+        const user = await this.prisma.$transaction(async (tx) => {
+            const createdUser = await tx.user.create({
+                data: {
+                    email: dto.email,
+                    passwordHash,
+                    fullName: dto.fullName,
+                    phone: dto.phone,
+                    role: dto.role,
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    fullName: true,
+                    role: true,
+                },
+            });
+            if (createdUser.role === 'client') {
+                await tx.clientProfile.create({
+                    data: {
+                        userId: createdUser.id,
+                        goals: [],
+                        preferredModalities: [],
+                    },
+                });
+            }
+            return createdUser;
         });
         const tokens = await this.generateTokens(user.id, user.email, user.role);
         await this.saveRefreshToken(user.id, tokens.refreshToken);

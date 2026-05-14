@@ -1,10 +1,13 @@
-import { UserRole } from '@prisma/client';
+export declare enum PublicRegisterRole {
+    client = "client",
+    trainer = "trainer"
+}
 export declare class RegisterDto {
     email: string;
     password: string;
     fullName: string;
     phone?: string;
-    role: UserRole;
+    role: PublicRegisterRole;
 }
 export declare class LoginDto {
     email: string;

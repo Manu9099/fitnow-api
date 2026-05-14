@@ -66,13 +66,13 @@ export declare class PaymentsController {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
+                userId: string;
                 bio: string | null;
                 yearsExperience: number | null;
                 hourlyRate: import("@prisma/client/runtime/library").Decimal;
                 modalities: import("@prisma/client").$Enums.Modality[];
                 serviceRadiusKm: number;
                 locationLabel: string | null;
-                userId: string;
                 tier: import("@prisma/client").$Enums.TrainerTier;
                 locationLat: number | null;
                 locationLng: number | null;

@@ -7,23 +7,23 @@ export declare class ClientProfilesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         goals: import("@prisma/client").$Enums.FitnessGoal[];
         fitnessLevel: string | null;
         injuriesNotes: string | null;
         preferredModalities: import("@prisma/client").$Enums.Modality[];
         walletBalance: import("@prisma/client/runtime/library").Decimal;
+        userId: string;
     }>;
     updateProfile(userId: string, dto: UpdateClientProfileDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         goals: import("@prisma/client").$Enums.FitnessGoal[];
         fitnessLevel: string | null;
         injuriesNotes: string | null;
         preferredModalities: import("@prisma/client").$Enums.Modality[];
         walletBalance: import("@prisma/client/runtime/library").Decimal;
+        userId: string;
     }>;
     getWallet(userId: string): Promise<{
         walletBalance: import("@prisma/client/runtime/library").Decimal;

@@ -18,28 +18,50 @@ export class AuthService {
     private config:  ConfigService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (exists) throw new ConflictException('El email ya está registrado');
+async register(dto: RegisterDto) {
+  const exists = await this.prisma.user.findUnique({
+    where: { email: dto.email },
+  });
 
-    const passwordHash = await bcrypt.hash(dto.password, 12);
+  if (exists) throw new ConflictException('El email ya está registrado');
 
-    const user = await this.prisma.user.create({
+  const passwordHash = await bcrypt.hash(dto.password, 12);
+
+  const user = await this.prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
       data: {
-        email:        dto.email,
+        email: dto.email,
         passwordHash,
-        fullName:     dto.fullName,
-        phone:        dto.phone,
-        role:         dto.role,
+        fullName: dto.fullName,
+        phone: dto.phone,
+        role: dto.role,
       },
-      select: { id: true, email: true, fullName: true, role: true },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+      },
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    if (createdUser.role === 'client') {
+      await tx.clientProfile.create({
+        data: {
+          userId: createdUser.id,
+          goals: [],
+          preferredModalities: [],
+        },
+      });
+    }
 
-    return { user, ...tokens };
-  }
+    return createdUser;
+  });
+
+  const tokens = await this.generateTokens(user.id, user.email, user.role);
+  await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+  return { user, ...tokens };
+}
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
